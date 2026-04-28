@@ -201,7 +201,7 @@
 
   .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 
@@ -259,18 +259,6 @@
     border-radius: 2px; padding: 6px 14px; font-size: 13px; color: var(--muted); z-index: 4;
   }
 
-  /* Angle gauge */
-  .angle-gauge {
-    position: absolute; bottom: 60px; right: 16px;
-    width: 80px; height: 80px; z-index: 4;
-  }
-
-  .angle-gauge svg { width: 100%; height: 100%; }
-
-  .gauge-bg { fill: none; stroke: var(--border); stroke-width: 6; }
-  .gauge-fill { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.15s, stroke 0.2s; }
-  .gauge-text { fill: var(--text); font-family: 'Do Hyeon', sans-serif; font-size: 16px; text-anchor: middle; dominant-baseline: central; }
-
   /* Knee warning */
   .knee-warn {
     position: absolute; bottom: 60px; left: 16px;
@@ -284,7 +272,6 @@
   @media (max-width: 400px) {
     .stat-value { font-size: 44px; }
     .stat-label { font-size: 13px; }
-    .angle-gauge { width: 60px; height: 60px; }
   }
 </style>
 </head>
@@ -321,15 +308,15 @@
         <div class="criteria-rule">
           <div class="rule-badge rep">REP</div>
           <div class="rule-text">
-            <strong>DOWN → UP → DOWN</strong> 1회 완료<br>
-            <span style="color:var(--text)">→ +1 카운트</span>
+            <strong>UP → DOWN</strong> 1회 완료<br>
+            <span style="color:var(--text)">→ REP 카운트</span>
           </div>
         </div>
         <div class="criteria-rule">
           <div class="rule-badge norep">NO REP</div>
           <div class="rule-text">
-            다리를 충분히 올리지 않거나, <strong>무릎을 구부린 경우</strong><br>
-            <span style="color:var(--text)">→ 카운트되지 않음</span>
+            다리를 올리고 있는데 <strong>무릎을 구부린 경우</strong><br>
+            <span style="color:var(--text)">→ NO REP + 무릎을 펴주세요!</span>
           </div>
         </div>
       </div>
@@ -344,12 +331,12 @@
       <div class="feature-card">
         <div class="feature-num">02</div>
         <div class="feature-title">무릎 체크</div>
-        <div class="feature-desc">무릎이 구부러지면 경고 표시, 정확한 자세 유도</div>
+        <div class="feature-desc">무릎이 구부러지면 NO REP 표시, 정확한 자세 유도</div>
       </div>
       <div class="feature-card">
         <div class="feature-num">03</div>
-        <div class="feature-title">실시간 게이지</div>
-        <div class="feature-desc">현재 각도를 게이지로 표시하여 운동 범위를 시각화</div>
+        <div class="feature-title">보조선 가이드</div>
+        <div class="feature-desc">누운 자세 감지 후 UP/DOWN 보조선이 은은하게 표시</div>
       </div>
     </div>
 
@@ -401,7 +388,7 @@
 
       <div class="side-indicator" id="sideLabel">감지 대기 중</div>
 
-      <div class="knee-warn" id="kneeWarn">⚠️ 무릎을 펴주세요!</div>
+      <div class="knee-warn" id="kneeWarn">⚠️ NO REP — 무릎을 펴주세요!</div>
 
       <div class="feedback-bar">
         <div class="feedback-text" id="feedbackText" style="color:var(--muted)">준비</div>
@@ -409,16 +396,6 @@
           엉덩이 각도 <span id="hipAngle">—</span>°<br>
           무릎 각도 <span id="kneeAngle">—</span>°
         </div>
-      </div>
-
-      <div class="angle-gauge" id="angleGauge">
-        <svg viewBox="0 0 80 80">
-          <circle class="gauge-bg" cx="40" cy="40" r="34" />
-          <circle class="gauge-fill" id="gaugeFill" cx="40" cy="40" r="34"
-            stroke-dasharray="213.6" stroke-dashoffset="213.6"
-            transform="rotate(-90 40 40)" />
-          <text class="gauge-text" id="gaugeText" x="40" y="40">0°</text>
-        </svg>
       </div>
     </div>
 
@@ -432,11 +409,6 @@
         <div class="stat-label">최고 각도</div>
         <div class="stat-value" id="bestAngle" style="color:var(--warn)">0</div>
         <div class="stat-sub">가장 높이 올린 각도</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">운동 시간</div>
-        <div class="stat-value" id="timerValue" style="font-size:40px;color:var(--accent2)">00:00</div>
-        <div class="stat-sub">경과 시간</div>
       </div>
     </div>
 
@@ -460,18 +432,14 @@ const hipAngleEl   = document.getElementById('hipAngle');
 const kneeAngleEl  = document.getElementById('kneeAngle');
 const totalCountEl = document.getElementById('totalCount');
 const bestAngleEl  = document.getElementById('bestAngle');
-const timerValueEl = document.getElementById('timerValue');
 const repFlashEl   = document.getElementById('repFlash');
 const repFlashText = document.getElementById('repFlashText');
 const kneeWarnEl   = document.getElementById('kneeWarn');
-const gaugeFillEl  = document.getElementById('gaugeFill');
-const gaugeTextEl  = document.getElementById('gaugeText');
 
 // ═════ 임계값 ═════
 const HIP_ANGLE_DOWN = 140;    // 다리 내림 판정
 const HIP_ANGLE_UP   = 110;    // 다리 올림 판정
 const KNEE_ANGLE_MIN = 150;    // 무릎 펴기 최소 각도 (이하면 구부러진 것)
-const GAUGE_CIRCUM   = 213.6;  // 2 * PI * 34
 
 let repCount = 0;
 let bestAng  = 0;
@@ -479,8 +447,12 @@ let phase    = 'DOWN';  // DOWN → UP → DOWN (+1)
 let cameraStarted = false;
 let flashTimeout = null;
 
-let exerciseStartMs = null;
-let timerInterval   = null;
+// ═════ 보조선 (가이드라인) ═════
+let guideCalibrated = false;
+let guideHipPx = { x: 0, y: 0 };
+let guideLegLen = 0;
+let guideCalibFrames = 0;
+const GUIDE_CALIB_NEEDED = 10; // 10프레임 안정되면 보조선 확정
 
 // ═════ 스무딩 ═════
 const SMOOTH_WINDOW = 3;
@@ -495,7 +467,6 @@ function goToCamera() {
 function goToLanding() {
   document.getElementById('cameraPage').classList.remove('active');
   document.getElementById('landingPage').classList.add('active');
-  if (timerInterval) clearInterval(timerInterval);
 }
 
 function fmtMs(ms) {
@@ -512,8 +483,17 @@ function flashElFn(el) {
 function showFlash() {
   if (flashTimeout) clearTimeout(flashTimeout);
   repFlashEl.style.background = 'rgba(34,197,94,0.22)';
-  repFlashText.textContent = '+1';
+  repFlashText.textContent = 'REP!';
   repFlashText.style.color = '#22c55e';
+  repFlashEl.classList.add('show');
+  flashTimeout = setTimeout(() => repFlashEl.classList.remove('show'), 700);
+}
+
+function showNoRepFlash() {
+  if (flashTimeout) clearTimeout(flashTimeout);
+  repFlashEl.style.background = 'rgba(239,68,68,0.22)';
+  repFlashText.textContent = 'NO REP';
+  repFlashText.style.color = '#ef4444';
   repFlashEl.classList.add('show');
   flashTimeout = setTimeout(() => repFlashEl.classList.remove('show'), 700);
 }
@@ -522,11 +502,9 @@ function resetStats() {
   repCount = 0; bestAng = 0; phase = 'DOWN';
   totalCountEl.textContent = '0';
   bestAngleEl.textContent = '0';
-  exerciseStartMs = null;
-  timerValueEl.textContent = '00:00';
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = null;
   angleHistory.length = 0;
+  guideCalibrated = false;
+  guideCalibFrames = 0;
 }
 
 function calcAngle(a, b, c) {
@@ -545,22 +523,6 @@ function getSmoothedAngle(angle) {
   if (angleHistory.length > SMOOTH_WINDOW) angleHistory.shift();
   const sum = angleHistory.reduce((a, b) => a + b, 0);
   return Math.round(sum / angleHistory.length);
-}
-
-function updateGauge(angle) {
-  // 180도(바닥) → 0%, 70도(완전 올림) → 100%
-  const pct = Math.max(0, Math.min(1, (180 - angle) / 110));
-  const offset = GAUGE_CIRCUM * (1 - pct);
-  gaugeFillEl.style.strokeDashoffset = offset;
-  gaugeTextEl.textContent = angle + '°';
-
-  if (angle <= HIP_ANGLE_UP) {
-    gaugeFillEl.style.stroke = '#22c55e';
-  } else if (angle <= HIP_ANGLE_DOWN) {
-    gaugeFillEl.style.stroke = '#fbbf24';
-  } else {
-    gaugeFillEl.style.stroke = '#34d399';
-  }
 }
 
 // ═════ 측면 감지: 왼쪽/오른쪽 자동 선택 ═════
@@ -603,14 +565,6 @@ pose.onResults((results) => {
   drawConnectors(ctx, lm, POSE_CONNECTIONS, { color: '#28473a', lineWidth: 1.5 });
   drawLandmarks(ctx, lm, { color: '#34d399', lineWidth: 1, radius: 3 });
 
-  // 타이머 시작
-  if (!exerciseStartMs) {
-    exerciseStartMs = performance.now();
-    timerInterval = setInterval(() => {
-      timerValueEl.textContent = fmtMs(performance.now() - exerciseStartMs);
-    }, 500);
-  }
-
   // 측면 자동 감지
   const side = getVisibleSide(lm);
   const shoulderIdx = side === 'left' ? 11 : 12;
@@ -634,8 +588,6 @@ pose.onResults((results) => {
 
   hipAngleEl.textContent = hipAngle;
   kneeAngleEl.textContent = kneeAngle;
-
-  updateGauge(hipAngle);
 
   // 무릎 구부림 체크
   const kneeOk = kneeAngle >= KNEE_ANGLE_MIN;
@@ -698,29 +650,75 @@ pose.onResults((results) => {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // UP/DOWN 존 표시
-  const upZoneY = hipY - 80;
-  ctx.strokeStyle = 'rgba(34,197,94,0.3)';
-  ctx.setLineDash([6, 6]); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(hipX - 60, upZoneY); ctx.lineTo(hipX + 100, upZoneY); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(34,197,94,0.5)';
-  ctx.font = '12px Do Hyeon, sans-serif';
-  ctx.fillText('UP ZONE', hipX + 105, upZoneY + 4);
+  // ═════ 보조선 (가이드라인) ═════
+  // 처음 누운 자세 감지 시 엉덩이 위치와 다리 길이를 캘리브레이션
+  if (!guideCalibrated) {
+    if (hipAngle >= HIP_ANGLE_DOWN) {
+      guideCalibFrames++;
+      if (guideCalibFrames >= GUIDE_CALIB_NEEDED) {
+        guideCalibrated = true;
+        guideHipPx = { x: hipX, y: hipY };
+        guideLegLen = Math.sqrt(Math.pow(ankleX - hipX, 2) + Math.pow(ankleY - hipY, 2));
+      }
+    } else {
+      guideCalibFrames = 0;
+    }
+  }
 
-  // ═════ 카운트 로직 ═════
-  if (!kneeOk) {
-    statusEl.textContent = '무릎을 펴주세요!';
+  // 보조선 그리기 (캘리브레이션 완료 후)
+  if (guideCalibrated) {
+    const gHx = guideHipPx.x, gHy = guideHipPx.y;
+    const gLen = guideLegLen * 0.95;
+
+    // DOWN 보조선 (140°) - 엉덩이에서 140° 방향으로 선
+    const downRad = (HIP_ANGLE_DOWN * Math.PI) / 180;
+    // 어깨→엉덩이 방향 기준으로 각도 계산
+    const baseAngle = Math.atan2(shoulderY - hipY, shoulderX - hipX);
+    const downAngle = baseAngle + (Math.PI - downRad);
+    const downEndX = gHx + Math.cos(downAngle) * gLen;
+    const downEndY = gHy + Math.sin(downAngle) * gLen;
+
+    ctx.strokeStyle = 'rgba(251,191,36,0.15)';
+    ctx.setLineDash([8, 8]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(gHx, gHy); ctx.lineTo(downEndX, downEndY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(251,191,36,0.25)';
+    ctx.font = '11px Do Hyeon, sans-serif';
+    ctx.fillText('DOWN', downEndX + 5, downEndY - 5);
+
+    // UP 보조선 (110°) - 엉덩이에서 110° 방향으로 선
+    const upRad = (HIP_ANGLE_UP * Math.PI) / 180;
+    const upAngle = baseAngle + (Math.PI - upRad);
+    const upEndX = gHx + Math.cos(upAngle) * gLen;
+    const upEndY = gHy + Math.sin(upAngle) * gLen;
+
+    ctx.strokeStyle = 'rgba(34,197,94,0.15)';
+    ctx.setLineDash([8, 8]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(gHx, gHy); ctx.lineTo(upEndX, upEndY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(34,197,94,0.25)';
+    ctx.font = '11px Do Hyeon, sans-serif';
+    ctx.fillText('UP', upEndX + 5, upEndY - 5);
+  }
+
+  // ═════ 카운트 로직 (UP → DOWN = 1 REP) ═════
+  if (!kneeOk && hipAngle < HIP_ANGLE_DOWN) {
+    // 다리를 올리고 있는데 무릎을 구부린 경우 → NO REP
+    statusEl.textContent = 'NO REP — 무릎을 펴주세요!';
     statusEl.className = 'overlay-status bad';
-    feedbackEl.textContent = 'BEND';
+    feedbackEl.textContent = 'NO REP';
     feedbackEl.style.color = 'var(--bad)';
+    kneeWarnEl.classList.add('show');
+    showNoRepFlash();
     return;
+  } else {
+    kneeWarnEl.classList.remove('show');
   }
 
   if (phase === 'DOWN') {
     if (hipAngle <= HIP_ANGLE_UP) {
       phase = 'UP';
-      statusEl.textContent = '다리 올림! 유지!';
+      statusEl.textContent = '다리 올림! 천천히 내려주세요';
       statusEl.className = 'overlay-status good';
       feedbackEl.textContent = 'UP!';
       feedbackEl.style.color = 'var(--good)';
@@ -742,7 +740,7 @@ pose.onResults((results) => {
       totalCountEl.textContent = repCount;
       flashElFn(totalCountEl);
       showFlash();
-      statusEl.textContent = '+1 REP! 잘했어요!';
+      statusEl.textContent = 'REP! 잘했어요!';
       statusEl.className = 'overlay-status good';
       feedbackEl.textContent = 'REP!';
       feedbackEl.style.color = 'var(--good)';
