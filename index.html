@@ -480,12 +480,19 @@ function flashElFn(el) {
   el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 
+// ═════ 비프음 ═════
+let audioCtx = null;
+function ensureAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}}
+function beep(f,d,v){try{ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.start(t);o.stop(t+d);}catch(e){}}
+function beepRep(){beep(1050,0.10,0.35);setTimeout(()=>beep(1400,0.12,0.35),100);}
+
 function showFlash() {
   if (flashTimeout) clearTimeout(flashTimeout);
   repFlashEl.style.background = 'rgba(34,197,94,0.22)';
   repFlashText.textContent = 'REP!';
   repFlashText.style.color = '#22c55e';
   repFlashEl.classList.add('show');
+  beepRep();
   flashTimeout = setTimeout(() => repFlashEl.classList.remove('show'), 700);
 }
 
