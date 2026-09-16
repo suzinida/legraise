@@ -5,274 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leg Raise Rep Checker</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #0a1814;
-    --surface: #12241e;
-    --border: #28473a;
-    --accent: #34d399;
-    --accent2: #a7f3d0;
-    --text: #ecfdf5;
-    --muted: #6b8e7e;
-    --good: #22c55e;
-    --warn: #fbbf24;
-    --bad: #ef4444;
-  }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Do Hyeon', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  .page { display: none; min-height: 100vh; flex-direction: column; }
-  .page.active { display: flex; }
-
-  .landing-header {
-    padding: 24px 40px;
-    display: flex; align-items: baseline; gap: 16px;
-    border-bottom: 0.5px solid var(--border);
-  }
-
-  .logo { font-size: 28px; letter-spacing: 0.06em; color: var(--accent); }
-  .subtitle { font-size: 14px; color: var(--muted); }
-
-  .landing-hero {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; padding: 48px 24px; text-align: center; gap: 24px;
-  }
-
-  .hero-tag {
-    font-size: 13px; letter-spacing: 0.12em; color: var(--accent);
-    border: 0.5px solid var(--accent); padding: 4px 14px; border-radius: 2px;
-  }
-
-  .hero-title {
-    font-size: clamp(48px, 10vw, 96px);
-    line-height: 0.98; letter-spacing: 0.03em;
-  }
-
-  .hero-title span { color: var(--accent); }
-
-  .hero-tagline {
-    font-size: 18px; color: var(--accent);
-    border: 0.5px solid var(--border); background: var(--surface);
-    padding: 10px 24px; border-radius: 4px; width: 100%; max-width: 680px;
-  }
-
-  .criteria-card {
-    width: 100%; max-width: 680px;
-    background: var(--surface); border: 0.5px solid var(--border);
-    border-radius: 8px; padding: 24px; text-align: left;
-  }
-
-  .criteria-title { font-size: 36px; color: var(--accent); margin-bottom: 20px; text-align: center; }
-
-  .criteria-rules { display: flex; flex-direction: column; gap: 16px; }
-  .criteria-rule { display: flex; align-items: flex-start; gap: 16px; }
-
-  .rule-badge {
-    font-size: 16px; padding: 5px 14px; border-radius: 3px;
-    white-space: nowrap; flex-shrink: 0; margin-top: 2px;
-  }
-
-  .rule-badge.rep   { background: var(--good); color: #001a08; }
-  .rule-badge.norep { background: var(--bad);  color: #fff; }
-  .rule-badge.up    { background: var(--accent); color: #001a08; }
-  .rule-badge.down  { background: var(--warn); color: #1a1200; }
-
-  .rule-text { font-size: 15px; color: var(--muted); line-height: 1.8; }
-  .rule-text strong { color: var(--text); font-weight: 400; }
-
-  .feature-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 12px; width: 100%; max-width: 680px;
-  }
-
-  .feature-card {
-    background: var(--surface); border: 0.5px solid var(--border);
-    border-radius: 4px; padding: 20px 16px; text-align: left;
-  }
-
-  .feature-num { font-size: 36px; color: var(--accent); line-height: 1; margin-bottom: 8px; }
-  .feature-title { font-size: 17px; color: var(--text); margin-bottom: 8px; }
-  .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
-
-  .how-section {
-    width: 100%; max-width: 680px;
-    background: var(--surface); border: 0.5px solid var(--border);
-    border-radius: 4px; padding: 24px; text-align: left;
-  }
-
-  .how-title { font-size: 36px; color: var(--accent); margin-bottom: 20px; }
-
-  .how-step {
-    display: flex; gap: 14px;
-    font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 14px;
-  }
-
-  .how-step:last-child { margin-bottom: 0; }
-  .how-num { font-size: 24px; color: var(--accent); line-height: 1.2; min-width: 18px; }
-
-  .btn-start {
-    width: 100%; max-width: 680px; padding: 20px;
-    background: var(--accent); border: none; border-radius: 4px;
-    color: #062b18;
-    font-family: 'Do Hyeon', sans-serif;
-    font-size: 24px; letter-spacing: 0.06em;
-    cursor: pointer; transition: background 0.15s, transform 0.1s;
-  }
-
-  .btn-start:hover { background: #6ee7b7; transform: scale(1.01); }
-  .btn-start:active { transform: scale(0.99); }
-
-  .cam-header {
-    padding: 16px 24px; display: flex;
-    align-items: center; justify-content: space-between;
-    border-bottom: 0.5px solid var(--border);
-  }
-
-  .back-btn {
-    background: transparent; border: 0.5px solid var(--border);
-    border-radius: 4px; color: var(--muted);
-    font-family: 'Do Hyeon', sans-serif;
-    font-size: 14px; padding: 6px 14px; cursor: pointer; transition: all 0.15s;
-  }
-
-  .back-btn:hover { border-color: var(--text); color: var(--text); }
-
-  .cam-main {
-    width: 100%; max-width: 960px; margin: 0 auto;
-    padding: 20px 16px; display: flex; flex-direction: column; gap: 16px;
-  }
-
-  .camera-section {
-    position: relative; width: 100%; aspect-ratio: 4/3;
-    background: var(--surface); border: 0.5px solid var(--border);
-    border-radius: 4px; overflow: hidden;
-  }
-
-  #videoEl { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
-  #canvasEl { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-  .rep-flash {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 5;
-  }
-
-  .rep-flash.show { opacity: 1; }
-
-  .rep-flash-text {
-    font-family: 'Do Hyeon', sans-serif;
-    font-size: 80px; letter-spacing: 0.04em;
-    color: var(--good);
-    text-shadow: 0 0 30px rgba(0,0,0,0.5);
-  }
-
-  .overlay-status {
-    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-    background: rgba(10,24,20,0.82); backdrop-filter: blur(6px);
-    border: 0.5px solid var(--border); border-radius: 2px;
-    padding: 8px 20px; font-size: 15px; color: var(--muted);
-    white-space: nowrap; transition: all 0.2s; z-index: 4;
-  }
-
-  .overlay-status.good { color: var(--good); border-color: var(--good); }
-  .overlay-status.warn { color: var(--warn); border-color: var(--warn); }
-  .overlay-status.bad  { color: var(--bad);  border-color: var(--bad); }
-
-  .feedback-bar {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 14px 20px 38px;
-    background: linear-gradient(transparent, rgba(10,24,20,0.9));
-    display: flex; align-items: center; justify-content: space-between; z-index: 4;
-  }
-
-  .feedback-text { font-size: 40px; letter-spacing: 0.04em; transition: color 0.2s; }
-
-  .angle-display { font-size: 14px; color: var(--muted); text-align: right; line-height: 1.7; }
-  .angle-display span { color: var(--text); }
-
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .stat-card {
-    background: var(--surface); border: 0.5px solid var(--border);
-    border-radius: 4px; padding: 14px 12px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-
-  .stat-label { font-size: 16px; color: var(--muted); letter-spacing: 0.04em; }
-
-  .stat-value {
-    font-size: 56px; line-height: 1; color: var(--accent); transition: color 0.3s;
-  }
-
-  .stat-value.flash { animation: flash 0.4s ease; }
-
-  @keyframes flash {
-    0%   { color: var(--good); transform: scale(1.15); }
-    100% { transform: scale(1); }
-  }
-
-  .stat-sub { font-size: 11px; color: var(--muted); }
-
-  .btn {
-    width: 100%; padding: 18px 20px; background: transparent;
-    border: 0.5px solid var(--border); border-radius: 4px;
-    color: var(--muted);
-    font-family: 'Do Hyeon', sans-serif;
-    font-size: 22px; letter-spacing: 0.06em;
-    cursor: pointer; transition: all 0.15s;
-  }
-
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  .loading-overlay {
-    position: absolute; inset: 0; background: var(--surface);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 16px; z-index: 10;
-  }
-
-  .loading-text { font-size: 15px; color: var(--muted); }
-
-  .spinner {
-    width: 32px; height: 32px;
-    border: 1.5px solid var(--border); border-top-color: var(--accent);
-    border-radius: 50%; animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .side-indicator {
-    position: absolute; top: 16px; right: 16px;
-    background: rgba(10,24,20,0.82); border: 0.5px solid var(--border);
-    border-radius: 2px; padding: 6px 14px; font-size: 13px; color: var(--muted); z-index: 4;
-  }
-
-  /* Knee warning */
-  .knee-warn {
-    position: absolute; bottom: 60px; left: 16px;
-    background: rgba(239,68,68,0.15); border: 0.5px solid var(--bad);
-    border-radius: 4px; padding: 6px 12px; font-size: 13px; color: var(--bad);
-    z-index: 4; display: none;
-  }
-
-  .knee-warn.show { display: block; }
-
-  @media (max-width: 400px) {
-    .stat-value { font-size: 44px; }
-    .stat-label { font-size: 13px; }
-  }
+@import url('https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a1814; --surface: #12241e; --border: #28473a; --accent: #34d399; --accent2: #a7f3d0;
+  --text: #ecfdf5; --muted: #6b8e7e; --good: #22c55e; --warn: #fbbf24; --bad: #ef4444;
+}
+body { background: var(--bg); color: var(--text); font-family: 'Do Hyeon', sans-serif; min-height: 100vh; overflow-x: hidden; }
+.page { display: none; min-height: 100vh; flex-direction: column; }
+.page.active { display: flex; }
+.landing-header { padding: 24px 40px; display: flex; align-items: baseline; gap: 16px; border-bottom: 0.5px solid var(--border); }
+.logo { font-size: 28px; letter-spacing: 0.06em; color: var(--accent); }
+.subtitle { font-size: 14px; color: var(--muted); }
+.landing-hero { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 48px 24px; text-align: center; gap: 24px; }
+.hero-tag { font-size: 13px; letter-spacing: 0.12em; color: var(--accent); border: 0.5px solid var(--accent); padding: 4px 14px; border-radius: 2px; }
+.hero-title { font-size: clamp(48px, 10vw, 96px); line-height: 0.98; letter-spacing: 0.03em; }
+.hero-title span { color: var(--accent); }
+.hero-tagline { font-size: 18px; color: var(--accent); border: 0.5px solid var(--border); background: var(--surface); padding: 10px 24px; border-radius: 4px; width: 100%; max-width: 680px; }
+.criteria-card { width: 100%; max-width: 680px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 8px; padding: 24px; text-align: left; }
+.criteria-title { font-size: 36px; color: var(--accent); margin-bottom: 20px; text-align: center; }
+.criteria-rules { display: flex; flex-direction: column; gap: 16px; }
+.criteria-rule { display: flex; align-items: flex-start; gap: 16px; }
+.rule-badge { font-size: 16px; padding: 5px 14px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.rule-badge.rep { background: var(--good); color: #001a08; }
+.rule-badge.norep { background: var(--bad); color: #fff; }
+.rule-badge.up { background: var(--accent); color: #001a08; }
+.rule-badge.down { background: var(--warn); color: #1a1200; }
+.rule-text { font-size: 15px; color: var(--muted); line-height: 1.8; }
+.rule-text strong { color: var(--text); font-weight: 400; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 680px; }
+.feature-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 20px 16px; text-align: left; }
+.feature-num { font-size: 36px; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+.feature-title { font-size: 17px; color: var(--text); margin-bottom: 8px; }
+.feature-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.how-section { width: 100%; max-width: 680px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 24px; text-align: left; }
+.how-title { font-size: 36px; color: var(--accent); margin-bottom: 20px; }
+.how-step { display: flex; gap: 14px; font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 14px; }
+.how-step:last-child { margin-bottom: 0; }
+.how-num { font-size: 24px; color: var(--accent); line-height: 1.2; min-width: 18px; }
+.btn-start { width: 100%; max-width: 680px; padding: 20px; background: var(--accent); border: none; border-radius: 4px; color: #062b18; font-family: 'Do Hyeon', sans-serif; font-size: 24px; letter-spacing: 0.06em; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+.btn-start:hover { background: #6ee7b7; transform: scale(1.01); }
+.btn-start:active { transform: scale(0.99); }
+.cam-header { padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); }
+.back-btn { background: transparent; border: 0.5px solid var(--border); border-radius: 4px; color: var(--muted); font-family: 'Do Hyeon', sans-serif; font-size: 14px; padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
+.back-btn:hover { border-color: var(--text); color: var(--text); }
+.cam-main { width: 100%; max-width: 960px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+.camera-section { position: relative; width: 100%; aspect-ratio: 4/3; background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; overflow: hidden; }
+#videoEl { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+#canvasEl { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rep-flash { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 5; }
+.rep-flash.show { opacity: 1; }
+.rep-flash-text { font-family: 'Do Hyeon', sans-serif; font-size: 80px; letter-spacing: 0.04em; color: var(--good); text-shadow: 0 0 30px rgba(0,0,0,0.5); }
+.rep-flash-sub { font-size: 22px; color: #fff; text-shadow: 0 0 12px rgba(0,0,0,0.8); margin-top: 4px; }
+.overlay-status { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(10,24,20,0.82); backdrop-filter: blur(6px); border: 0.5px solid var(--border); border-radius: 2px; padding: 8px 20px; font-size: 15px; color: var(--muted); white-space: nowrap; transition: all 0.2s; z-index: 4; }
+.overlay-status.good { color: var(--good); border-color: var(--good); }
+.overlay-status.warn { color: var(--warn); border-color: var(--warn); }
+.overlay-status.bad { color: var(--bad); border-color: var(--bad); }
+.feedback-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 14px 20px 38px; background: linear-gradient(transparent, rgba(10,24,20,0.9)); display: flex; align-items: center; justify-content: space-between; z-index: 4; }
+.feedback-text { font-size: 40px; letter-spacing: 0.04em; transition: color 0.2s; }
+.angle-display { font-size: 14px; color: var(--muted); text-align: right; line-height: 1.7; }
+.angle-display span { color: var(--text); }
+.stats-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+.stat-label { font-size: 16px; color: var(--muted); letter-spacing: 0.04em; }
+.stat-value { font-size: 56px; line-height: 1; color: var(--accent); transition: color 0.3s; }
+.stat-value.flash { animation: flash 0.4s ease; transform-origin: left center; }
+@keyframes flash { 0% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.stat-sub { font-size: 11px; color: var(--muted); }
+.btn { width: 100%; padding: 18px 20px; background: transparent; border: 0.5px solid var(--border); border-radius: 4px; color: var(--muted); font-family: 'Do Hyeon', sans-serif; font-size: 22px; letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.loading-overlay { position: absolute; inset: 0; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10; }
+.loading-text { font-size: 15px; color: var(--muted); }
+.spinner { width: 32px; height: 32px; border: 1.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.side-indicator { position: absolute; top: 16px; right: 16px; background: rgba(10,24,20,0.82); border: 0.5px solid var(--border); border-radius: 2px; padding: 6px 14px; font-size: 13px; color: var(--muted); z-index: 4; }
+.knee-warn { position: absolute; bottom: 60px; left: 16px; background: rgba(239,68,68,0.15); border: 0.5px solid var(--bad); border-radius: 4px; padding: 6px 12px; font-size: 13px; color: var(--bad); z-index: 4; display: none; }
+.knee-warn.show { display: block; }
+@media (max-width: 400px) { .stat-value { font-size: 44px; } .stat-label { font-size: 13px; } }
 </style>
 </head>
 <body>
@@ -280,9 +89,8 @@
 <div class="page active" id="landingPage">
   <header class="landing-header">
     <div class="logo">Leg Raise Rep Checker</div>
-    <div class="subtitle">Yuga Middle School</div>
+    <div class="subtitle">P-JOURNEY</div>
   </header>
-
   <div class="landing-hero">
     <div class="hero-tag">AI 자세 분석</div>
     <div class="hero-title">LEG<br><span>RAISE</span><br>CHECKER</div>
@@ -293,71 +101,35 @@
       <div class="criteria-rules">
         <div class="criteria-rule">
           <div class="rule-badge down">DOWN</div>
-          <div class="rule-text">
-            <strong>누운 자세</strong>에서 다리를 펴고 바닥 가까이 내린 상태<br>
-            <span style="color:var(--text)">→ 엉덩이 각도 140° 이상</span>
-          </div>
+          <div class="rule-text"><strong>누운 자세</strong>에서 다리를 펴고 바닥 가까이 내린 상태<br><span style="color:var(--text)">→ 엉덩이 각도 140° 이상</span></div>
         </div>
         <div class="criteria-rule">
           <div class="rule-badge up">UP</div>
-          <div class="rule-text">
-            다리를 <strong>위로 올린 상태</strong> (약 45° 이상)<br>
-            <span style="color:var(--text)">→ 엉덩이 각도 110° 이하</span>
-          </div>
+          <div class="rule-text">다리를 <strong>위로 올린 상태</strong> (약 45° 이상)<br><span style="color:var(--text)">→ 엉덩이 각도 110° 이하</span></div>
         </div>
         <div class="criteria-rule">
           <div class="rule-badge rep">REP</div>
-          <div class="rule-text">
-            <strong>UP → DOWN</strong> 1회 완료<br>
-            <span style="color:var(--text)">→ REP 카운트</span>
-          </div>
+          <div class="rule-text">무릎을 편 채로 <strong>UP → DOWN</strong> 1회 완료<br><span style="color:var(--text)">→ REP 카운트</span></div>
         </div>
         <div class="criteria-rule">
           <div class="rule-badge norep">NO REP</div>
-          <div class="rule-text">
-            다리를 올리고 있는데 <strong>무릎을 구부린 경우</strong><br>
-            <span style="color:var(--text)">→ NO REP + 무릎을 펴주세요!</span>
-          </div>
+          <div class="rule-text">다리를 올리고 내리는 동안 <strong>무릎을 구부린 경우</strong><br><span style="color:var(--text)">→ 다리를 내렸을 때 NO REP 1회로 기록돼요</span></div>
         </div>
       </div>
     </div>
 
     <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-num">01</div>
-        <div class="feature-title">각도 측정</div>
-        <div class="feature-desc">엉덩이 관절 각도를 실시간으로 측정하여 정확한 카운트</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">02</div>
-        <div class="feature-title">무릎 체크</div>
-        <div class="feature-desc">무릎이 구부러지면 NO REP 표시, 정확한 자세 유도</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-num">03</div>
-        <div class="feature-title">보조선 가이드</div>
-        <div class="feature-desc">누운 자세 감지 후 UP/DOWN 보조선이 은은하게 표시</div>
-      </div>
+      <div class="feature-card"><div class="feature-num">01</div><div class="feature-title">각도 측정</div><div class="feature-desc">엉덩이 관절 각도를 실시간으로 측정하여 정확한 카운트</div></div>
+      <div class="feature-card"><div class="feature-num">02</div><div class="feature-title">REP · NO REP 기록</div><div class="feature-desc">무릎을 구부린 동작은 NO REP으로 따로 세고 정확도를 보여줘요</div></div>
+      <div class="feature-card"><div class="feature-num">03</div><div class="feature-title">보조선 가이드</div><div class="feature-desc">누운 자세 감지 후 UP/DOWN 보조선이 은은하게 표시</div></div>
     </div>
 
     <div class="how-section">
       <div class="how-title">사용 방법</div>
-      <div class="how-step">
-        <div class="how-num">1</div>
-        <div>카메라 시작 버튼을 누르고 카메라 권한을 허용해주세요</div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">2</div>
-        <div>카메라를 <span style="color:var(--accent)">옆에 세워두고</span> 측면에서 전신이 보이도록 누워주세요</div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">3</div>
-        <div>사람이 감지되면 <span style="color:var(--good)">자동으로 카운트</span>가 시작됩니다</div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">4</div>
-        <div>다리를 <span style="color:var(--accent2)">쭉 편 상태</span>로 올리고 내리세요. 무릎을 구부리면 카운트되지 않아요!</div>
-      </div>
+      <div class="how-step"><div class="how-num">1</div><div>카메라 시작 버튼을 누르고 카메라 권한을 허용해주세요</div></div>
+      <div class="how-step"><div class="how-num">2</div><div>카메라를 <span style="color:var(--accent)">옆에 세워두고</span> 측면에서 전신이 보이도록 누워주세요</div></div>
+      <div class="how-step"><div class="how-num">3</div><div>사람이 감지되면 <span style="color:var(--good)">자동으로 카운트</span>가 시작됩니다</div></div>
+      <div class="how-step"><div class="how-num">4</div><div>다리를 <span style="color:var(--accent2)">쭉 편 상태</span>로 올리고 내리세요. 무릎을 구부리면 NO REP으로 기록돼요!</div></div>
     </div>
 
     <button class="btn-start" onclick="goToCamera()">카메라 시작하기 →</button>
@@ -369,47 +141,26 @@
     <div class="logo" style="font-size:22px">Leg Raise Rep Checker</div>
     <button class="back-btn" onclick="goToLanding()">← 뒤로</button>
   </div>
-
   <div class="cam-main">
     <div class="camera-section">
       <video id="videoEl" playsinline></video>
       <canvas id="canvasEl"></canvas>
-
-      <div class="rep-flash" id="repFlash">
-        <div class="rep-flash-text" id="repFlashText">+1</div>
-      </div>
-
-      <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div class="loading-text">AI 모델 로딩 중...</div>
-      </div>
-
+      <div class="rep-flash" id="repFlash"><div class="rep-flash-text" id="repFlashText">+1</div><div class="rep-flash-sub" id="repFlashSub"></div></div>
+      <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><div class="loading-text">AI 모델 로딩 중...</div></div>
       <div class="overlay-status" id="statusLabel">카메라 시작 중...</div>
-
       <div class="side-indicator" id="sideLabel">감지 대기 중</div>
-
-      <div class="knee-warn" id="kneeWarn">⚠️ NO REP — 무릎을 펴주세요!</div>
-
+      <div class="knee-warn" id="kneeWarn">⚠️ 무릎을 펴주세요! 이번 동작은 NO REP</div>
       <div class="feedback-bar">
         <div class="feedback-text" id="feedbackText" style="color:var(--muted)">준비</div>
-        <div class="angle-display">
-          엉덩이 각도 <span id="hipAngle">—</span>°<br>
-          무릎 각도 <span id="kneeAngle">—</span>°
-        </div>
+        <div class="angle-display">엉덩이 각도 <span id="hipAngle">—</span>°<br>무릎 각도 <span id="kneeAngle">—</span>°</div>
       </div>
     </div>
 
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">총 횟수</div>
-        <div class="stat-value" id="totalCount">0</div>
-        <div class="stat-sub">레그레이즈</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">최고 각도</div>
-        <div class="stat-value" id="bestAngle" style="color:var(--warn)">0</div>
-        <div class="stat-sub">가장 높이 올린 각도</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">REP</div><div class="stat-value" id="totalCount" style="color:var(--good)">0</div><div class="stat-sub">무릎 편 채 완료</div></div>
+      <div class="stat-card"><div class="stat-label">NO REP</div><div class="stat-value" id="noRepCount" style="color:var(--bad)">0</div><div class="stat-sub">무릎 굽힘</div></div>
+      <div class="stat-card"><div class="stat-label">정확도</div><div class="stat-value" id="accuracy">—</div><div class="stat-sub">REP ÷ 전체 시도</div></div>
+      <div class="stat-card"><div class="stat-label">최고 각도</div><div class="stat-value" id="bestAngle" style="color:var(--warn)">0</div><div class="stat-sub">가장 높이 올린 각도</div></div>
     </div>
 
     <button class="btn" onclick="resetStats()">횟수 초기화</button>
@@ -419,31 +170,38 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
-
 <script>
-const videoEl      = document.getElementById('videoEl');
-const canvasEl     = document.getElementById('canvasEl');
-const ctx          = canvasEl.getContext('2d');
-const loadingEl    = document.getElementById('loadingOverlay');
-const statusEl     = document.getElementById('statusLabel');
-const sideEl       = document.getElementById('sideLabel');
-const feedbackEl   = document.getElementById('feedbackText');
-const hipAngleEl   = document.getElementById('hipAngle');
-const kneeAngleEl  = document.getElementById('kneeAngle');
+const videoEl = document.getElementById('videoEl');
+const canvasEl = document.getElementById('canvasEl');
+const ctx = canvasEl.getContext('2d');
+const loadingEl = document.getElementById('loadingOverlay');
+const statusEl = document.getElementById('statusLabel');
+const sideEl = document.getElementById('sideLabel');
+const feedbackEl = document.getElementById('feedbackText');
+const hipAngleEl = document.getElementById('hipAngle');
+const kneeAngleEl = document.getElementById('kneeAngle');
 const totalCountEl = document.getElementById('totalCount');
-const bestAngleEl  = document.getElementById('bestAngle');
-const repFlashEl   = document.getElementById('repFlash');
+const noRepCountEl = document.getElementById('noRepCount');
+const accuracyEl = document.getElementById('accuracy');
+const bestAngleEl = document.getElementById('bestAngle');
+const repFlashEl = document.getElementById('repFlash');
 const repFlashText = document.getElementById('repFlashText');
-const kneeWarnEl   = document.getElementById('kneeWarn');
+const repFlashSub = document.getElementById('repFlashSub');
+const kneeWarnEl = document.getElementById('kneeWarn');
 
 // ═════ 임계값 ═════
-const HIP_ANGLE_DOWN = 140;    // 다리 내림 판정
-const HIP_ANGLE_UP   = 110;    // 다리 올림 판정
-const KNEE_ANGLE_MIN = 150;    // 무릎 펴기 최소 각도 (이하면 구부러진 것)
+const HIP_ANGLE_DOWN = 140;   // 다리 내림 판정
+const HIP_ANGLE_UP = 110;     // 다리 올림 판정
+const KNEE_ANGLE_MIN = 150;   // 무릎 펴기 최소 각도 (이하면 구부러진 것)
+const BENT_FRAMES_NEEDED = 3; // 이만큼 연속으로 굽어야 '굽힘'으로 봄 (순간 흔들림 무시)
 
 let repCount = 0;
-let bestAng  = 0;
-let phase    = 'DOWN';  // DOWN → UP → DOWN (+1)
+let noRepCount = 0;
+let bestAng = 0;
+let phase = 'DOWN';        // DOWN → UP → DOWN (+1)
+let inRep = false;         // 다리를 들기 시작했는가
+let bentThisRep = false;   // 이번 동작에서 무릎을 굽혔는가
+let bentFrames = 0;
 let cameraStarted = false;
 let flashTimeout = null;
 
@@ -452,7 +210,7 @@ let guideCalibrated = false;
 let guideHipPx = { x: 0, y: 0 };
 let guideLegLen = 0;
 let guideCalibFrames = 0;
-const GUIDE_CALIB_NEEDED = 10; // 10프레임 안정되면 보조선 확정
+const GUIDE_CALIB_NEEDED = 10;
 
 // ═════ 스무딩 ═════
 const SMOOTH_WINDOW = 3;
@@ -461,54 +219,55 @@ const angleHistory = [];
 function goToCamera() {
   document.getElementById('landingPage').classList.remove('active');
   document.getElementById('cameraPage').classList.add('active');
+  ensureAudio();
   if (!cameraStarted) startCamera();
 }
-
 function goToLanding() {
   document.getElementById('cameraPage').classList.remove('active');
   document.getElementById('landingPage').classList.add('active');
 }
-
-function fmtMs(ms) {
-  const s = Math.floor(ms / 1000);
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-}
-
-function flashElFn(el) {
-  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
-}
+function flashElFn(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 
 // ═════ 비프음 ═════
 let audioCtx = null;
 function ensureAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}}
 function beep(f,d,v){try{ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.start(t);o.stop(t+d);}catch(e){}}
 function beepRep(){beep(1050,0.10,0.35);setTimeout(()=>beep(1400,0.12,0.35),100);}
+function beepNoRep(){beep(260,0.25,0.3);}
 
 function showFlash() {
   if (flashTimeout) clearTimeout(flashTimeout);
   repFlashEl.style.background = 'rgba(34,197,94,0.22)';
   repFlashText.textContent = 'REP!';
   repFlashText.style.color = '#22c55e';
+  repFlashSub.textContent = '';
   repFlashEl.classList.add('show');
   beepRep();
   flashTimeout = setTimeout(() => repFlashEl.classList.remove('show'), 700);
 }
-
-function showNoRepFlash() {
+function showNoRepFlash(reason) {
   if (flashTimeout) clearTimeout(flashTimeout);
   repFlashEl.style.background = 'rgba(239,68,68,0.22)';
   repFlashText.textContent = 'NO REP';
   repFlashText.style.color = '#ef4444';
+  repFlashSub.textContent = reason || '';
   repFlashEl.classList.add('show');
-  flashTimeout = setTimeout(() => repFlashEl.classList.remove('show'), 700);
+  beepNoRep();
+  flashTimeout = setTimeout(() => repFlashEl.classList.remove('show'), 900);
+}
+
+function updateQuality() {
+  totalCountEl.textContent = repCount;
+  noRepCountEl.textContent = noRepCount;
+  const tries = repCount + noRepCount;
+  accuracyEl.textContent = tries ? Math.round((repCount / tries) * 100) + '%' : '—';
 }
 
 function resetStats() {
-  repCount = 0; bestAng = 0; phase = 'DOWN';
-  totalCountEl.textContent = '0';
+  repCount = 0; noRepCount = 0; bestAng = 0; phase = 'DOWN';
+  inRep = false; bentThisRep = false; bentFrames = 0;
   bestAngleEl.textContent = '0';
+  updateQuality();
   angleHistory.length = 0;
   guideCalibrated = false;
   guideCalibFrames = 0;
@@ -534,25 +293,41 @@ function getSmoothedAngle(angle) {
 
 // ═════ 측면 감지: 왼쪽/오른쪽 자동 선택 ═════
 function getVisibleSide(lm) {
-  const leftHipVis  = lm[23].visibility || 0;
-  const rightHipVis = lm[24].visibility || 0;
-  const leftKneeVis  = lm[25].visibility || 0;
-  const rightKneeVis = lm[26].visibility || 0;
-
-  const leftScore  = leftHipVis + leftKneeVis;
-  const rightScore = rightHipVis + rightKneeVis;
-
+  const leftScore = (lm[23].visibility || 0) + (lm[25].visibility || 0);
+  const rightScore = (lm[24].visibility || 0) + (lm[26].visibility || 0);
   return leftScore >= rightScore ? 'left' : 'right';
 }
 
+// 한 동작이 끝나 다리가 바닥으로 돌아왔을 때 판정
+function finishRep(reachedUp) {
+  if (bentThisRep) {
+    noRepCount++;
+    updateQuality();
+    flashElFn(noRepCountEl);
+    showNoRepFlash('무릎을 편 채로 올리고 내리세요');
+    statusEl.textContent = 'NO REP — 다음 동작은 무릎을 펴고!';
+    statusEl.className = 'overlay-status bad';
+    feedbackEl.textContent = 'NO REP';
+    feedbackEl.style.color = 'var(--bad)';
+  } else if (reachedUp) {
+    repCount++;
+    updateQuality();
+    flashElFn(totalCountEl);
+    showFlash();
+    statusEl.textContent = 'REP! 잘했어요!';
+    statusEl.className = 'overlay-status good';
+    feedbackEl.textContent = 'REP!';
+    feedbackEl.style.color = 'var(--good)';
+  }
+  inRep = false;
+  bentThisRep = false;
+}
+
 const pose = new Pose({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
-pose.setOptions({
-  modelComplexity: 1, smoothLandmarks: true, enableSegmentation: false,
-  minDetectionConfidence: 0.6, minTrackingConfidence: 0.6
-});
+pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
 pose.onResults((results) => {
-  canvasEl.width  = videoEl.videoWidth  || 640;
+  canvasEl.width = videoEl.videoWidth || 640;
   canvasEl.height = videoEl.videoHeight || 480;
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
   ctx.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
@@ -573,13 +348,11 @@ pose.onResults((results) => {
   drawLandmarks(ctx, lm, { color: '#34d399', lineWidth: 1, radius: 3 });
 
   // ═════ 전신 감지 체크 ═════
-  // 주요 랜드마크: 어깨(11,12), 엉덩이(23,24), 무릎(25,26), 발목(27,28)
   const keyPoints = [11, 12, 23, 24, 25, 26, 27, 28];
   const visValues = keyPoints.map(i => lm[i].visibility || 0);
   const avgVis = visValues.reduce((a, b) => a + b, 0) / visValues.length;
   const lowVisCount = visValues.filter(v => v < 0.5).length;
 
-  // 전신이 화면에 안 나오는 경우 (주요 포인트 절반 이상 안 보임)
   if (lowVisCount >= 4) {
     statusEl.textContent = '전신이 모두 화면에 나오게 카메라를 옮겨주세요';
     statusEl.className = 'overlay-status warn';
@@ -588,8 +361,6 @@ pose.onResults((results) => {
     sideEl.textContent = '전신 미감지';
     return;
   }
-
-  // 뒤에 다른 사람이 있어 인식이 불안정한 경우 (visibility 전체적으로 낮음)
   if (avgVis < 0.45 && lowVisCount >= 2) {
     statusEl.textContent = '카메라 안에 한 사람만 나오게 해주세요';
     statusEl.className = 'overlay-status warn';
@@ -599,93 +370,58 @@ pose.onResults((results) => {
     return;
   }
 
-  // 측면 자동 감지
   const side = getVisibleSide(lm);
-  const shoulderIdx = side === 'left' ? 11 : 12;
-  const hipIdx      = side === 'left' ? 23 : 24;
-  const kneeIdx     = side === 'left' ? 25 : 26;
-  const ankleIdx    = side === 'left' ? 27 : 28;
-
+  const shoulder = lm[side === 'left' ? 11 : 12];
+  const hip = lm[side === 'left' ? 23 : 24];
+  const knee = lm[side === 'left' ? 25 : 26];
+  const ankle = lm[side === 'left' ? 27 : 28];
   sideEl.textContent = side === 'left' ? '왼쪽 측면' : '오른쪽 측면';
 
-  const shoulder = lm[shoulderIdx];
-  const hip      = lm[hipIdx];
-  const knee     = lm[kneeIdx];
-  const ankle    = lm[ankleIdx];
-
-  // 엉덩이 각도 (어깨-엉덩이-무릎)
-  const rawHipAngle = calcAngle(shoulder, hip, knee);
-  const hipAngle = getSmoothedAngle(rawHipAngle);
-
-  // 무릎 각도 (엉덩이-무릎-발목)
-  const kneeAngle = calcAngle(hip, knee, ankle);
-
+  const hipAngle = getSmoothedAngle(calcAngle(shoulder, hip, knee));   // 어깨-엉덩이-무릎
+  const kneeAngle = calcAngle(hip, knee, ankle);                        // 엉덩이-무릎-발목
   hipAngleEl.textContent = hipAngle;
   kneeAngleEl.textContent = kneeAngle;
 
-  // 무릎 구부림 체크
   const kneeOk = kneeAngle >= KNEE_ANGLE_MIN;
-  if (!kneeOk) {
-    kneeWarnEl.classList.add('show');
-  } else {
-    kneeWarnEl.classList.remove('show');
-  }
+  bentFrames = kneeOk ? 0 : bentFrames + 1;
 
-  // 최고 각도 (가장 높이 올린 = 가장 작은 각도)
-  const liftAngle = 180 - hipAngle;
-  if (liftAngle > bestAng) {
-    bestAng = liftAngle;
-    bestAngleEl.textContent = bestAng;
+  // 다리를 들기 시작한 뒤 무릎이 계속 굽어 있으면 이번 동작은 NO REP 예정
+  if (hipAngle < HIP_ANGLE_DOWN) {
+    inRep = true;
+    if (bentFrames >= BENT_FRAMES_NEEDED) bentThisRep = true;
   }
+  kneeWarnEl.classList.toggle('show', inRep && bentThisRep);
+
+  const liftAngle = 180 - hipAngle;
+  if (liftAngle > bestAng) { bestAng = liftAngle; bestAngleEl.textContent = bestAng; }
 
   // Visualization
   const W = canvasEl.width, H = canvasEl.height;
-
-  // 엉덩이-무릎 라인 강조
   const hipX = hip.x * W, hipY = hip.y * H;
   const kneeX = knee.x * W, kneeY = knee.y * H;
   const ankleX = ankle.x * W, ankleY = ankle.y * H;
   const shoulderX = shoulder.x * W, shoulderY = shoulder.y * H;
 
-  // 엉덩이 각도 시각화
   ctx.beginPath();
   ctx.arc(hipX, hipY, 30, 0, Math.PI * 2);
-  ctx.fillStyle = hipAngle <= HIP_ANGLE_UP ? 'rgba(34,197,94,0.25)' :
-                  hipAngle >= HIP_ANGLE_DOWN ? 'rgba(251,191,36,0.2)' :
-                  'rgba(52,211,153,0.15)';
+  ctx.fillStyle = hipAngle <= HIP_ANGLE_UP ? 'rgba(34,197,94,0.25)' : hipAngle >= HIP_ANGLE_DOWN ? 'rgba(251,191,36,0.2)' : 'rgba(52,211,153,0.15)';
   ctx.fill();
-
-  // 각도 텍스트
-  ctx.fillStyle = hipAngle <= HIP_ANGLE_UP ? '#22c55e' :
-                  hipAngle >= HIP_ANGLE_DOWN ? '#fbbf24' : '#34d399';
+  ctx.fillStyle = hipAngle <= HIP_ANGLE_UP ? '#22c55e' : hipAngle >= HIP_ANGLE_DOWN ? '#fbbf24' : '#34d399';
   ctx.font = '18px Do Hyeon, sans-serif';
   ctx.fillText(hipAngle + '°', hipX + 35, hipY - 5);
 
-  // 다리 라인 강조
   ctx.beginPath();
-  ctx.moveTo(hipX, hipY);
-  ctx.lineTo(kneeX, kneeY);
-  ctx.lineTo(ankleX, ankleY);
+  ctx.moveTo(hipX, hipY); ctx.lineTo(kneeX, kneeY); ctx.lineTo(ankleX, ankleY);
   ctx.strokeStyle = kneeOk ? (hipAngle <= HIP_ANGLE_UP ? '#22c55e' : '#34d399') : '#ef4444';
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // 무릎 마커
-  ctx.beginPath();
-  ctx.arc(kneeX, kneeY, 8, 0, Math.PI * 2);
-  ctx.strokeStyle = kneeOk ? '#34d399' : '#ef4444';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(kneeX, kneeY, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = kneeOk ? '#34d399' : '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(ankleX, ankleY, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2; ctx.stroke();
 
-  // 발목 마커
-  ctx.beginPath();
-  ctx.arc(ankleX, ankleY, 8, 0, Math.PI * 2);
-  ctx.strokeStyle = '#34d399';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // ═════ 보조선 (가이드라인) ═════
-  // 처음 누운 자세 감지 시 엉덩이 위치와 다리 길이를 캘리브레이션
+  // ═════ 보조선 ═════
   if (!guideCalibrated) {
     if (hipAngle >= HIP_ANGLE_DOWN) {
       guideCalibFrames++;
@@ -698,57 +434,24 @@ pose.onResults((results) => {
       guideCalibFrames = 0;
     }
   }
-
-  // 보조선 그리기 (캘리브레이션 완료 후)
   if (guideCalibrated) {
     const gHx = guideHipPx.x, gHy = guideHipPx.y;
     const gLen = guideLegLen * 0.95;
-
-    // DOWN 보조선 (140°) - 엉덩이에서 140° 방향으로 선
-    const downRad = (HIP_ANGLE_DOWN * Math.PI) / 180;
-    // 어깨→엉덩이 방향 기준으로 각도 계산
     const baseAngle = Math.atan2(shoulderY - hipY, shoulderX - hipX);
-    const downAngle = baseAngle + (Math.PI - downRad);
-    const downEndX = gHx + Math.cos(downAngle) * gLen;
-    const downEndY = gHy + Math.sin(downAngle) * gLen;
-
-    ctx.strokeStyle = 'rgba(251,191,36,0.15)';
-    ctx.setLineDash([8, 8]); ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(gHx, gHy); ctx.lineTo(downEndX, downEndY); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(251,191,36,0.25)';
-    ctx.font = '11px Do Hyeon, sans-serif';
-    ctx.fillText('DOWN', downEndX + 5, downEndY - 5);
-
-    // UP 보조선 (110°) - 엉덩이에서 110° 방향으로 선
-    const upRad = (HIP_ANGLE_UP * Math.PI) / 180;
-    const upAngle = baseAngle + (Math.PI - upRad);
-    const upEndX = gHx + Math.cos(upAngle) * gLen;
-    const upEndY = gHy + Math.sin(upAngle) * gLen;
-
-    ctx.strokeStyle = 'rgba(34,197,94,0.15)';
-    ctx.setLineDash([8, 8]); ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(gHx, gHy); ctx.lineTo(upEndX, upEndY); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(34,197,94,0.25)';
-    ctx.font = '11px Do Hyeon, sans-serif';
-    ctx.fillText('UP', upEndX + 5, upEndY - 5);
+    const drawGuide = (deg, stroke, fill, label) => {
+      const a = baseAngle + (Math.PI - (deg * Math.PI) / 180);
+      const ex = gHx + Math.cos(a) * gLen, ey = gHy + Math.sin(a) * gLen;
+      ctx.strokeStyle = stroke; ctx.setLineDash([8, 8]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(gHx, gHy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = fill; ctx.font = '11px Do Hyeon, sans-serif';
+      ctx.fillText(label, ex + 5, ey - 5);
+    };
+    drawGuide(HIP_ANGLE_DOWN, 'rgba(251,191,36,0.15)', 'rgba(251,191,36,0.25)', 'DOWN');
+    drawGuide(HIP_ANGLE_UP, 'rgba(34,197,94,0.15)', 'rgba(34,197,94,0.25)', 'UP');
   }
 
-  // ═════ 카운트 로직 (UP → DOWN = 1 REP) ═════
-  if (!kneeOk && hipAngle < HIP_ANGLE_DOWN) {
-    // 다리를 올리고 있는데 무릎을 구부린 경우 → NO REP
-    statusEl.textContent = 'NO REP — 무릎을 펴주세요!';
-    statusEl.className = 'overlay-status bad';
-    feedbackEl.textContent = 'NO REP';
-    feedbackEl.style.color = 'var(--bad)';
-    kneeWarnEl.classList.add('show');
-    showNoRepFlash();
-    return;
-  } else {
-    kneeWarnEl.classList.remove('show');
-  }
-
+  // ═════ 카운트 로직: 다리가 바닥으로 돌아올 때 한 번만 판정 ═════
   if (phase === 'DOWN') {
     if (hipAngle <= HIP_ANGLE_UP) {
       phase = 'UP';
@@ -757,10 +460,14 @@ pose.onResults((results) => {
       feedbackEl.textContent = 'UP!';
       feedbackEl.style.color = 'var(--good)';
     } else if (hipAngle >= HIP_ANGLE_DOWN) {
-      statusEl.textContent = '다리를 올려주세요';
-      statusEl.className = 'overlay-status';
-      feedbackEl.textContent = 'DOWN';
-      feedbackEl.style.color = 'var(--warn)';
+      if (inRep) {
+        finishRep(false);   // UP까지 못 갔더라도 무릎을 굽혔다면 NO REP
+      } else {
+        statusEl.textContent = '다리를 올려주세요';
+        statusEl.className = 'overlay-status';
+        feedbackEl.textContent = 'DOWN';
+        feedbackEl.style.color = 'var(--warn)';
+      }
     } else {
       statusEl.textContent = '더 올려주세요!';
       statusEl.className = 'overlay-status warn';
@@ -770,14 +477,7 @@ pose.onResults((results) => {
   } else if (phase === 'UP') {
     if (hipAngle >= HIP_ANGLE_DOWN) {
       phase = 'DOWN';
-      repCount++;
-      totalCountEl.textContent = repCount;
-      flashElFn(totalCountEl);
-      showFlash();
-      statusEl.textContent = 'REP! 잘했어요!';
-      statusEl.className = 'overlay-status good';
-      feedbackEl.textContent = 'REP!';
-      feedbackEl.style.color = 'var(--good)';
+      finishRep(true);
     } else if (hipAngle <= HIP_ANGLE_UP) {
       statusEl.textContent = '다리 올림! 천천히 내려주세요';
       statusEl.className = 'overlay-status good';
@@ -790,15 +490,18 @@ pose.onResults((results) => {
       feedbackEl.style.color = 'var(--accent2)';
     }
   }
+
+  if (inRep && !kneeOk) {
+    statusEl.textContent = '무릎을 펴주세요!';
+    statusEl.className = 'overlay-status bad';
+  }
 });
 
 async function startCamera() {
   cameraStarted = true;
   try {
-    // 1번 왕복달리기와 동일 - 전면 카메라 우선
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user' }
-    }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      .catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
     videoEl.srcObject = stream; videoEl.play();
     const camera = new Camera(videoEl, {
       onFrame: async () => { await pose.send({ image: videoEl }); },
